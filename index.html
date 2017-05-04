@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>一个列表</title>
+	<link rel="stylesheet" type="text/css" href="index.css">
+	<script src="vue.js"></script>
+	
+</head>
+<body>
+	<div id="main">
+		<input type="text" v-model="check.content" @keydown.enter="add" placeholder="快来编写东西">
+		<div class="list">
+			<p v-if="show.length == 0">
+				暂无数据
+			</p>
+			<div class="item" v-else v-for="(item,index) in show">
+				<input type="checkbox" @click="isChecked(index)" :checked="item.finished">
+				<span :class="{check: item.finished}">{{item.content}}</span>
+				<button @click="removeItem(index)" class="delete">删除</button>
+			</div>
+			<div class="showNum">总数：<span v-text="total"></span>  已选择数量：<span v-text="checkedNum"></span></div>
+		</div>
+	</div>
+	
+	<script>
+		var showArrInit = window.localStorage.getItem("show");
+		var checkedNumInit = window.localStorage.getItem("checkedNum");
+		var totalInit = window.localStorage.getItem("total");
+		var app = new Vue({
+			el: '#main',
+			data: {
+
+				//用来做检查
+				check: {
+					content:'',
+					finished: false,
+					deleted: false
+				},
+				show: JSON.parse(showArrInit) !== null && JSON.parse(showArrInit).length > 0?JSON.parse(showArrInit):[],
+				checkedNum: checkedNumInit > 0? +checkedNumInit:0,
+				total: totalInit > 0? +totalInit:0
+			},
+			methods: {
+
+				//添加一条
+				add: function (){
+					this.show.push(this.check);
+					this.check = {
+						content:'',
+						finished: false,
+						deleted: false
+					};
+					this.total++;
+					setData("show",this.show);
+					setData("total",this.total);
+				},
+
+				//选中一条
+				isChecked: function (index){
+					let checkStatus = this.show[index].finished;
+					this.show[index].finished = !checkStatus;
+					if(!checkStatus){
+						this.checkedNum++;
+					}else {
+						this.checkedNum--;
+					}
+					setData("show",this.show);
+					setData("total",this.total);
+					setData("checkedNum",this.checkedNum);
+				},
+
+				//删除一条
+				removeItem: function (index){
+					let status = this.show[index].finished;
+					this.show.splice(index,1);
+					this.total--;
+					if(status){
+						this.checkedNum--;
+					}
+					setData("show",this.show);
+					setData("total",this.total);
+					setData("checkedNum",this.checkedNum);
+				}
+			}
+		});
+		function setData(key,val){
+			var dataString = JSON.stringify(val);
+			window.localStorage.setItem(key,dataString);
+
+		}
+	</script>
+</body>
+</html>
